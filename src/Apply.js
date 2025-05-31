@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Apply.css";
 
-
 export default function Apply() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -29,6 +28,7 @@ export default function Apply() {
 
   const requiredSkillNames = job.skills || [];
 
+  // Initialize skills state only for required skills
   const [skills, setSkills] = useState(
     requiredSkillNames.map((skillName) => {
       const existing = initialSkills.find((s) => s.name === skillName);
@@ -46,7 +46,17 @@ export default function Apply() {
     linkedin: "",
     location: "",
     resumeFileName: "",
+    manualSkills: "", // New manual skill input field
   });
+
+  if (!job.position || !job.company) {
+    return (
+      <div className="apply-container">
+        <h2>Error: Job details are missing!</h2>
+        <p>Please go back to the job listing and try again.</p>
+      </div>
+    );
+  }
 
   const handleClick = (index, event) => {
     const progressBarWidth = event.target.offsetWidth;
@@ -57,15 +67,6 @@ export default function Apply() {
     updatedSkills[index].percentage = newPercentage;
     setSkills(updatedSkills);
   };
-
-  if (!job.position || !job.company) {
-    return (
-      <div className="apply-container">
-        <h2>Error: Job details are missing!</h2>
-        <p>Please go back to the job listing and try again.</p>
-      </div>
-    );
-  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -84,13 +85,27 @@ export default function Apply() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const selectedSkills = skills
-      .filter((skill) => skill.percentage > 0)
-      .map((skill) => ({
-        name: skill.name,
-        level: skill.percentage,
-      }));
+    // Split manualSkills input, normalize for case insensitive comparison
+    const manualSkillsArray = formData.manualSkills
+      .split(",")
+      .map((skill) => skill.trim().toLowerCase())
+      .filter(Boolean);
 
+    // Check if all required skills are present in manualSkillsArray
+    const missingSkills = requiredSkillNames.filter(
+      (reqSkill) => !manualSkillsArray.includes(reqSkill.toLowerCase())
+    );
+
+    if (missingSkills.length > 0) {
+      alert(
+        `Unfit for this job.\nMissing required skill(s): ${missingSkills.join(
+          ", "
+        )}\nPlease improve and try again!`
+      );
+      return; // Don't submit, user is unfit
+    }
+
+    // If all required skills are present → proceed
     const newDetailedApplication = {
       jobTitle: job.position,
       company: job.company,
@@ -104,7 +119,9 @@ export default function Apply() {
       linkedin: formData.linkedin,
       location: formData.location,
       resume: formData.resumeFileName,
-      skills: selectedSkills,
+      // Save both skill % and manual skills (if needed)
+      skillsWithPercentage: skills,
+      manualSkills: manualSkillsArray,
       requiredSkills: job.skills || [],
     };
 
@@ -122,7 +139,7 @@ export default function Apply() {
       localStorage.setItem("applicationCount", updatedApplications.length);
       localStorage.setItem("hasViewedResults", "false");
 
-      alert("Application submitted successfully!");
+      alert("Success! Application submitted.");
       navigate("/submissions");
     } catch (err) {
       alert("Error saving your application. Storage limit might be exceeded.");
@@ -155,9 +172,9 @@ export default function Apply() {
         <label>Current Location *</label>
         <input type="text" name="location" value={formData.location} onChange={handleChange} required />
 
-        {/* Skill Percentage Feature (Only required skills shown) */}
+        {/* Skill percentage sliders */}
         <div className="skill-section">
-          <label>Set Your Skill Levels *</label>
+          <label>Set Your Skill Levels (required skills only)</label>
           <div className="container">
             {skills.map((skill, index) => (
               <div key={skill.name} className="skill-row">
@@ -178,6 +195,17 @@ export default function Apply() {
             ))}
           </div>
         </div>
+
+        {/* Manual skills input */}
+        <label>Enter Your Skills Manually (comma-separated) *</label>
+        <input
+          type="text"
+          name="manualSkills"
+          value={formData.manualSkills}
+          onChange={handleChange}
+          placeholder="e.g. HTML, CSS, JavaScript"
+          required
+        />
 
         <button type="submit" className="submit-btn">Submit</button>
       </form>
