@@ -46,11 +46,13 @@ export default function Select() {
       suggestions.push("Apply to roles that match your timeline.");
     }
 
-    const normalize = str => str.trim().toLowerCase();
-    const applicationSkills = application.skills || [];
-    const missingSkills = matchedJob.skills.filter(skill =>
-      !applicationSkills.map(normalize).includes(normalize(skill))
-    );
+   const normalize = str => typeof str === "string" ? str.trim().toLowerCase() : "";
+
+const applicationSkillNames = applicationSkills.map(skill => normalize(skill.name));
+
+const missingSkills = matchedJob.skills.filter(skill =>
+  !applicationSkillNames.includes(normalize(skill))
+);
 
     if (missingSkills.length > 0) {
       reasons.push(`Missing required skills: ${missingSkills.join(", ")}`);
