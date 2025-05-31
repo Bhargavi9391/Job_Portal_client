@@ -21,7 +21,6 @@ function Login() {
   const { darkMode, toggleTheme } = useTheme();
   const [userCount, setUserCount] = useState(0);
   const navigate = useNavigate();
-
   const API_BASE = "https://job-portal-server-1-nt8w.onrender.com";
 
   const conditions = [
@@ -53,6 +52,7 @@ function Login() {
     }
 
     let registeredUsers = JSON.parse(localStorage.getItem("registeredUsers")) || [];
+
     const userExists = registeredUsers.some((user) => user.email === email);
     if (userExists) {
       setError("🚫 Email is already registered. Please login.");
@@ -80,7 +80,11 @@ function Login() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+      }),
     })
       .then((res) => {
         if (res.ok) return res.json();
@@ -95,7 +99,7 @@ function Login() {
         setIsLogin(true);
         localStorage.setItem("authenticatedUser", JSON.stringify({ name, email }));
 
-        // Save new user locally (for forgot password feature)
+        // Save the new user to localStorage
         registeredUsers.push({ name, email, password });
         localStorage.setItem("registeredUsers", JSON.stringify(registeredUsers));
       })
@@ -113,6 +117,7 @@ function Login() {
       return;
     }
 
+    // Check for admin credentials first
     if (email === adminEmail && password === adminPassword) {
       alert("👑 Welcome, Admin!");
       setIsAdmin(true);
@@ -126,8 +131,10 @@ function Login() {
     }
 
     try {
+      // Make an API request to the backend for login validation
       const response = await axios.post(`${API_BASE}/login`, { email, password });
 
+      // If login successful, store user data and token in localStorage
       if (response.status === 200) {
         const user = response.data.user;
         alert("👍 Login Successful!");
@@ -173,7 +180,7 @@ function Login() {
     registeredUsers[userIndex].password = newPassword;
     localStorage.setItem("registeredUsers", JSON.stringify(registeredUsers));
 
-    alert("🙂 Password reset successful! Please login with your new password.");
+    alert("🙂Password reset successful! Please login with your new password.");
     setForgotPassword(false);
     setNewPassword("");
     setError("");
