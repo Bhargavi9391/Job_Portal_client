@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaTrashAlt } from "react-icons/fa";
 import './Select.css';
 
-
 export default function Select() {
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
@@ -18,11 +17,8 @@ export default function Select() {
   }, []);
 
   useEffect(() => {
-  
     localStorage.setItem("hasViewedResults", "true");
   }, []);
-  
-
 
   const getResultMessage = (application) => {
     const matchedJob = adminJobs.find(job =>
@@ -46,13 +42,17 @@ export default function Select() {
       suggestions.push("Apply to roles that match your timeline.");
     }
 
-   const normalize = str => typeof str === "string" ? str.trim().toLowerCase() : "";
+    // Fix: safely normalize skill names as strings
+    const normalize = str => (typeof str === "string" ? str.trim().toLowerCase() : "");
 
-const applicationSkillNames = applicationSkills.map(skill => normalize(skill.name));
+    const applicationSkills = application.skills || [];
+    // Extract skill names from application skills objects, then normalize
+    const applicationSkillNames = applicationSkills.map(skill => normalize(skill.name));
 
-const missingSkills = matchedJob.skills.filter(skill =>
-  !applicationSkillNames.includes(normalize(skill))
-);
+    // Normalize required skills from matchedJob.skills and check missing
+    const missingSkills = matchedJob.skills.filter(skill =>
+      !applicationSkillNames.includes(normalize(skill))
+    );
 
     if (missingSkills.length > 0) {
       reasons.push(`Missing required skills: ${missingSkills.join(", ")}`);
