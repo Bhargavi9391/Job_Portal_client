@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaTrashAlt } from "react-icons/fa";
 import './Select.css';
 
+
 export default function Select() {
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
@@ -17,8 +18,11 @@ export default function Select() {
   }, []);
 
   useEffect(() => {
+  
     localStorage.setItem("hasViewedResults", "true");
   }, []);
+  
+
 
   const getResultMessage = (application) => {
     const matchedJob = adminJobs.find(job =>
@@ -42,25 +46,11 @@ export default function Select() {
       suggestions.push("Apply to roles that match your timeline.");
     }
 
-    const normalize = str => (typeof str === "string" ? str.trim().toLowerCase() : "");
-
-    let applicationSkills = [];
-    if (Array.isArray(application.skills)) {
-      applicationSkills = application.skills.map(skill => {
-        if (typeof skill === "string") return normalize(skill);
-        if (skill && typeof skill.name === "string") return normalize(skill.name);
-        return "";
-      });
-    } else if (typeof application.skills === "string") {
-      applicationSkills = application.skills.split(",").map(normalize);
-    }
-
-    let requiredSkills = [];
-    if (Array.isArray(matchedJob.skills)) {
-      requiredSkills = matchedJob.skills.map(normalize);
-    }
-
-    const missingSkills = requiredSkills.filter(skill => skill && !applicationSkills.includes(skill));
+    const normalize = str => str.trim().toLowerCase();
+    const applicationSkills = application.skills || [];
+    const missingSkills = matchedJob.skills.filter(skill =>
+      !applicationSkills.map(normalize).includes(normalize(skill))
+    );
 
     if (missingSkills.length > 0) {
       reasons.push(`Missing required skills: ${missingSkills.join(", ")}`);
@@ -110,7 +100,10 @@ export default function Select() {
               <p><strong>CGPA:</strong> {app.cgpa || "Not Provided"}</p>
               <p><strong>Graduation Year:</strong> {app.graduationYear || "Not Provided"}</p>
               <p><strong>Status:</strong> {result.message}</p>
-              {result.followUp && <p className="follow-up">{result.followUp}</p>}
+              {result.followUp && (
+                <p className="follow-up">{result.followUp}</p>
+              )}
+
               {result.reasons.length > 0 && (
                 <>
                   <p><strong>Reasons:</strong></p>
@@ -121,6 +114,7 @@ export default function Select() {
                   </ul>
                 </>
               )}
+
               {result.suggestions.length > 0 && (
                 <>
                   <p><strong>Suggestions:</strong></p>
@@ -131,6 +125,7 @@ export default function Select() {
                   </ul>
                 </>
               )}
+
               {result.message.includes("Unfit") && (
                 <small>
                   <p><strong>Extra Tips:</strong></p>
@@ -141,6 +136,7 @@ export default function Select() {
                   </ul>
                 </small>
               )}
+
               <FaTrashAlt
                 className="back-icon2"
                 onClick={() => handleDelete(index)}
