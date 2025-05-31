@@ -28,7 +28,6 @@ export default function Apply() {
 
   const requiredSkillNames = job.skills || [];
 
-  // Initialize skills state only for required skills
   const [skills, setSkills] = useState(
     requiredSkillNames.map((skillName) => {
       const existing = initialSkills.find((s) => s.name === skillName);
@@ -46,7 +45,7 @@ export default function Apply() {
     linkedin: "",
     location: "",
     resumeFileName: "",
-    manualSkills: "", // New manual skill input field
+    manualSkills: "",
   });
 
   if (!job.position || !job.company) {
@@ -62,7 +61,6 @@ export default function Apply() {
     const progressBarWidth = event.target.offsetWidth;
     const clickPosition = event.nativeEvent.offsetX;
     const newPercentage = Math.round((clickPosition / progressBarWidth) * 100);
-
     const updatedSkills = [...skills];
     updatedSkills[index].percentage = newPercentage;
     setSkills(updatedSkills);
@@ -85,13 +83,11 @@ export default function Apply() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Split manualSkills input, normalize for case insensitive comparison
     const manualSkillsArray = formData.manualSkills
       .split(",")
       .map((skill) => skill.trim().toLowerCase())
       .filter(Boolean);
 
-    // Check if all required skills are present in manualSkillsArray
     const missingSkills = requiredSkillNames.filter(
       (reqSkill) => !manualSkillsArray.includes(reqSkill.toLowerCase())
     );
@@ -102,24 +98,22 @@ export default function Apply() {
           ", "
         )}\nPlease improve and try again!`
       );
-      return; // Don't submit, user is unfit
+      return;
     }
 
-    // If all required skills are present → proceed
     const newDetailedApplication = {
       jobTitle: job.position,
       company: job.company,
       firstName: formData.firstName,
       lastName: formData.lastName,
-      graduationYear: formData.graduationYear,
+      graduationYear: Number(formData.graduationYear),
       expectedYear: job.expectedYear || "",
       education: "M.Tech",
       requiredEducation: job.education || "",
-      cgpa: formData.cgpa,
+      cgpa: Number(formData.cgpa),
       linkedin: formData.linkedin,
       location: formData.location,
       resume: formData.resumeFileName,
-      // Save both skill % and manual skills (if needed)
       skillsWithPercentage: skills,
       manualSkills: manualSkillsArray,
       requiredSkills: job.skills || [],
@@ -138,7 +132,6 @@ export default function Apply() {
       localStorage.setItem("applications", JSON.stringify(updatedApplications));
       localStorage.setItem("applicationCount", updatedApplications.length);
       localStorage.setItem("hasViewedResults", "false");
-
       alert("Success! Application submitted.");
       navigate("/submissions");
     } catch (err) {
@@ -153,26 +146,19 @@ export default function Apply() {
       <form className="apply-form" onSubmit={handleSubmit}>
         <label>First Name *</label>
         <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} required />
-
         <label>Last Name *</label>
         <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} required />
-
         <label>Graduation Year *</label>
         <input type="number" name="graduationYear" value={formData.graduationYear} onChange={handleChange} required />
-
         <label>CGPA *</label>
         <input type="text" name="cgpa" value={formData.cgpa} onChange={handleChange} required />
-
         <label>LinkedIn Profile *</label>
         <input type="url" name="linkedin" value={formData.linkedin} onChange={handleChange} required />
-
         <label>Upload Resume (PDF) *</label>
         <input type="file" accept=".pdf" onChange={handleFileChange} required />
-
         <label>Current Location *</label>
         <input type="text" name="location" value={formData.location} onChange={handleChange} required />
 
-        {/* Skill percentage sliders */}
         <div className="skill-section">
           <label>Set Your Skill Levels (required skills only)</label>
           <div className="container">
@@ -182,10 +168,7 @@ export default function Apply() {
                 <div className="progress-bar" onClick={(e) => handleClick(index, e)}>
                   <div
                     className="progress"
-                    style={{
-                      width: `${skill.percentage}%`,
-                      backgroundColor: skill.color,
-                    }}
+                    style={{ width: `${skill.percentage}%`, backgroundColor: skill.color }}
                   />
                 </div>
                 <div className="percentage">
@@ -196,7 +179,6 @@ export default function Apply() {
           </div>
         </div>
 
-        {/* Manual skills input */}
         <label>Enter Your Skills Manually (comma-separated) *</label>
         <input
           type="text"
@@ -206,7 +188,6 @@ export default function Apply() {
           placeholder="e.g. HTML, CSS, JavaScript"
           required
         />
-
         <button type="submit" className="submit-btn">Submit</button>
       </form>
     </div>
