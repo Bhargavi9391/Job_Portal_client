@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaTrashAlt } from "react-icons/fa";
 import './Select.css';
 
-
 export default function Select() {
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
@@ -18,11 +17,8 @@ export default function Select() {
   }, []);
 
   useEffect(() => {
-  
     localStorage.setItem("hasViewedResults", "true");
   }, []);
-  
-
 
   const getResultMessage = (application) => {
     const matchedJob = adminJobs.find(job =>
@@ -46,11 +42,17 @@ export default function Select() {
       suggestions.push("Apply to roles that match your timeline.");
     }
 
-    const normalize = str => str.trim().toLowerCase();
-    const applicationSkills = application.skills || [];
-    const missingSkills = matchedJob.skills.filter(skill =>
-      !applicationSkills.map(normalize).includes(normalize(skill))
-    );
+    const normalize = str => (typeof str === "string" ? str.trim().toLowerCase() : "");
+
+    const applicationSkills = Array.isArray(application.skills)
+      ? application.skills
+      : (typeof application.skills === "string" ? application.skills.split(",") : []);
+
+    const missingSkills = Array.isArray(matchedJob.skills)
+      ? matchedJob.skills.filter(skill =>
+          !applicationSkills.map(normalize).includes(normalize(skill))
+        )
+      : [];
 
     if (missingSkills.length > 0) {
       reasons.push(`Missing required skills: ${missingSkills.join(", ")}`);
