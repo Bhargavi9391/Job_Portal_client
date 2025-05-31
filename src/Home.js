@@ -159,7 +159,12 @@ export default function Home() {
               <h3>{job.position} at {job.company}</h3>
               <p><strong>Location:</strong> {job.location}</p>
               <p><strong>Work Type:</strong> {job.workType}</p>
-              <p><strong>Skills:</strong> {Array.isArray(job.skills) ? job.skills.join(", ") : job.skills}</p>
+           <p><strong>Skills:</strong> {
+  Array.isArray(job.skills)
+    ? job.skills.filter(s => typeof s === "string").map(s => s.trim()).join(", ")
+    : (typeof job.skills === "string" ? job.skills.trim() : "N/A")
+}</p>
+
               <p><strong>Education:</strong> {job.education}</p>
               <p><strong>Description:</strong> {job.description}</p>
               <p><strong>Vacancies:</strong> {job.vacancies}</p>
