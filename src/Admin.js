@@ -1,4 +1,4 @@
- import { useState,useEffect } from "react";
+import { useState,useEffect } from "react";
 import { saveJobsToDB, getJobsFromDB } from "./utils/indexedDB";
 
 
@@ -156,7 +156,7 @@ useEffect(() => {
   
     localStorage.setItem("homePostedJobs", JSON.stringify(homePostedJobs));
   
-    alert(Job Posted Successfully! Total Jobs: ${homePostedJobs.length});
+    alert(`Job Posted Successfully! Total Jobs: ${homePostedJobs.length}`);
   };
   
   
@@ -345,4 +345,4 @@ useEffect(() => {
 
     </div>
   );
-} 
+}
