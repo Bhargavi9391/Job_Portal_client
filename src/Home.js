@@ -3,13 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useTheme } from "./ThemeContext";
+
+
 import axios from "axios";
+
+
 import "./Home.css";
 
 export default function Home() {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [jobs, setJobs] = useState([]);
+  const [postedJobs, setPostedJobs] = useState([]);
   const [savedJobs, setSavedJobs] = useState([]);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [randomUser, setRandomUser] = useState(null);
@@ -17,8 +22,8 @@ export default function Home() {
   const [applicationCount, setApplicationCount] = useState(0);
   const [hasViewedResults, setHasViewedResults] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const { isDark, toggleTheme } = useTheme();
-
+   const { isDark, toggleTheme } = useTheme();
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,26 +39,31 @@ export default function Home() {
         navigate("/");
       }
     }
-
+  
     const storedApplications = JSON.parse(localStorage.getItem("applications")) || [];
     setApplications(storedApplications);
+  
   }, [navigate]);
 
   useEffect(() => {
     const count = Number(localStorage.getItem("applicationCount")) || 0;
     const viewed = localStorage.getItem("hasViewedResults") === "true";
+  
     setApplicationCount(count);
     setHasViewedResults(viewed);
   }, []);
-
+  
+  
   useEffect(() => {
     const storedJobs = JSON.parse(localStorage.getItem("homePostedJobs")) || [];
-    storedJobs.sort((a, b) => b.postedTime - a.postedTime);
-    setJobs(storedJobs);
+    setPostedJobs(storedJobs);
+
+    const storedSavedJobs = JSON.parse(localStorage.getItem("savedJobs")) || [];
+    setSavedJobs(storedSavedJobs);
   }, []);
 
   const handleNavigateToSelect = () => {
-    navigate("/select");
+    navigate("/select"); // Adjust the path as needed
   };
 
   const toggleSaveJob = (job) => {
@@ -94,62 +104,72 @@ export default function Home() {
 
   return (
     <div className="home-container">
+      
       <nav className="navbar">
         <div className="logo-container">
           <h1 className="brand-title">✨Career<span className="highlight">Crafter</span></h1>
         </div>
-
         <div className="notification">
-          {!hasViewedResults && (
-            <p className="application-count">{applicationCount}</p>
-          )}
-        </div>
-
-        <ul className="nav-links">
-          <li onClick={() => navigate("/home")}>Home</li>
-          <li onClick={() => navigate("/companies")}>Companies</li>
-          <li onClick={() => navigate("/savedjobs")}>Saved Jobs</li>
-          <li onClick={() => navigate("/submissions")}>Submissions</li>
-          <li onClick={handleNavigateToSelect}>Results</li>
-          <li className="more-link" onClick={() => setShowMoreMenu((prev) => !prev)}>
+  {!hasViewedResults && (
+    <p className="application-count">{applicationCount}</p>
+  )}
+</div>
+<ul className="nav-links">
+  <li onClick={() => navigate("/home")}>Home</li>
+  <li onClick={() => navigate("/companies")}>Companies</li>
+  <li onClick={() => navigate("/savedjobs")}>Saved Jobs</li>
+  <li onClick={() => navigate("/submissions")}>Submissions</li>
+  <li onClick={handleNavigateToSelect}>Results</li>
+  <li
+            className="more-link"
+            onClick={() => setShowMoreMenu((prev) => !prev)} 
+          >
             More
             {showMoreMenu && (
               <ul className="dropdown-menu">
                 <li onClick={() => navigate("/more")}>Support</li>
+                
               </ul>
             )}
           </li>
-          <div className="email-icon-wrapper">
-            <a href="mailto:owner@gmail.com?subject=Query&body=Please enter your message here" target="_blank" rel="noopener noreferrer">
-              <span className="email-icon">📧</span>
-            </a>
-            <div className="tooltip2">If you have any queries, email the admin.</div>
-          </div>
-        </ul>
+  <div className="email-icon-wrapper">
+    <a href="mailto:owner@gmail.com?subject=Query&body=Please enter your message here" target="_blank" rel="noopener noreferrer">
+      <span className="email-icon">📧</span>
+    </a>
+    <div className="tooltip2">If you have any queries, email the admin.</div>
+  </div>
+  
+  
+  
+</ul>
 
         <div className="logout-avatar" onClick={handleLogout}>
-          {user?.email?.charAt(0)?.toUpperCase() || "U"}
-        </div>
-      </nav>
+  {user?.email?.charAt(0)?.toUpperCase() || "U"}
+</div>
 
-      {jobs.length > 0 ? (
+
+      </nav>
+    
+
+      {postedJobs.length > 0 ? (
         <div className="job-list">
-          {jobs.map((job, index) => (
+          {postedJobs.map((job, index) => (
             <div key={index} className="job-card">
               <p>Posted {new Date(job.postedTime).toLocaleString()}</p>
               <h3>{job.position} at {job.company}</h3>
               <p><strong>Location:</strong> {job.location}</p>
               <p><strong>Work Type:</strong> {job.workType}</p>
-              <p><strong>Skills:</strong> {
-                Array.isArray(job.skills)
-                  ? job.skills.filter(s => typeof s === "string").map(s => s.trim()).join(", ")
-                  : (typeof job.skills === "string" ? job.skills.trim() : "N/A")
-              }</p>
+           <p><strong>Skills:</strong> {
+  Array.isArray(job.skills)
+    ? job.skills.filter(s => typeof s === "string").map(s => s.trim()).join(", ")
+    : (typeof job.skills === "string" ? job.skills.trim() : "N/A")
+}</p>
+
               <p><strong>Education:</strong> {job.education}</p>
               <p><strong>Description:</strong> {job.description}</p>
               <p><strong>Vacancies:</strong> {job.vacancies}</p>
               <p><strong>Salary:</strong> {job.salary}</p>
-              <p><strong>Expected year:</strong> {job.expectedYear}</p>
+              <p><strong>Expected year:</strong>{job.expectedYear}</p>
 
               <div className="job-actions">
                 <button className="save-btn" onClick={() => toggleSaveJob(job)}>
@@ -171,11 +191,13 @@ export default function Home() {
           <div className="modal-content">
             <h3>Confirm Logout</h3>
             <p><strong>Email:</strong> {user?.email || "Not Available"}</p>
+
             {randomUser && (
               <div className="random-user">
                 <img src={randomUser.picture.medium} alt="Random User" />
               </div>
             )}
+
             <button className="logout-btn" onClick={confirmLogout}>Logout</button>
             <button className="cancel-btn" onClick={() => setShowLogoutModal(false)}>Cancel</button>
           </div>
